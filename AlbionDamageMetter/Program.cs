@@ -14,5 +14,4 @@ var builder = Host.CreateDefaultBuilder(args)
     });
 
 var app = builder.Build();
-if (AlbionWorldData.GetDataListFromJson())
-    await app.RunAsync();
+await app.RunAsync();

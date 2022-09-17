@@ -8,38 +8,6 @@ namespace AlbionDamageMetter.Albion
 {
     public static class AlbionWorldData
     {
-        public static ObservableCollection<WorldJsonObject> MapData;
-
-        public static string GetUniqueNameOrNull(string index)
-        {
-            return MapData?.FirstOrDefault(x => x?.Index == index)?.UniqueName;
-        }
-
-        public static string GetUniqueNameOrDefault(int index)
-        {
-            return GetUniqueNameOrDefault($"{index:0000}");
-        }
-
-        public static string GetUniqueNameOrDefault(string index)
-        {
-            var name = MapData?.FirstOrDefault(x => x.Index == index)?.UniqueName ?? index;
-            var splitName = name?.Split(new[] { "@" }, StringSplitOptions.None);
-
-            if (splitName is { Length: > 0 } && name.ToLower().Contains('@'))
-            {
-                return GetMapNameByMapType(GetMapType(splitName[1]));
-            }
-
-            return name;
-        }
-
-        public static List<MapMarkerType> GetMapMarkers(string index)
-        {
-            var miniMapMarkers = MapData?.FirstOrDefault(x => x.Index == index)?.MiniMapMarkers?.Marker ?? new List<Marker>();
-            var mapMarkers = miniMapMarkers.Select(miniMapMarker => GetMapMarkerType(miniMapMarker.Type)).Where(marker => marker != MapMarkerType.Unknown).ToList();
-            return mapMarkers;
-        }
-
         private static MapMarkerType GetMapMarkerType(string value)
         {
             return value switch
@@ -138,51 +106,6 @@ namespace AlbionDamageMetter.Albion
             if (index.ToUpper().Contains("ARENA")) return MapType.Arena;
 
             return MapType.Unknown;
-        }
-
-        public static bool GetDataListFromJson()
-        {
-            var localFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GameFiles", "world.json");
-
-            if (!File.Exists(localFilePath))
-            {
-                return false;
-            }
-
-            MapData = GetWorldDataFromLocal();
-            return MapData?.Count > 0;
-        }
-
-        public static string GetWorldJsonTypeByIndex(string index)
-        {
-            if (index == null)
-            {
-                return null;
-            }
-
-            var splitName = index.Split(new[] { "@" }, StringSplitOptions.RemoveEmptyEntries);
-            if (index.ToLower().Contains('@') && splitName.Length > 0 && !string.IsNullOrEmpty(splitName[0]))
-            {
-                return splitName[0];
-            }
-
-            return MapData?.FirstOrDefault(x => x.Index == index)?.Type;
-        }
-
-        public static string GetFileByIndex(string index)
-        {
-            return MapData?.FirstOrDefault(x => x.Index == index)?.File;
-        }
-
-        private static ObservableCollection<WorldJsonObject> GetWorldDataFromLocal()
-        {
-            var options = new JsonSerializerOptions()
-            {
-                ReadCommentHandling = JsonCommentHandling.Skip
-            };
-
-            var localItemString = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GameFiles", "world.json"), Encoding.UTF8);
-            return JsonSerializer.Deserialize<ObservableCollection<WorldJsonObject>>(localItemString, options);
         }
     }
 }

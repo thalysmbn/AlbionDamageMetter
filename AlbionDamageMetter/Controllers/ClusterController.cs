@@ -13,7 +13,7 @@ namespace AlbionDamageMetter.Controllers
             _albionClusterData = albionClusterData;
         }
 
-        public AlbionClusterData Data()
+        public AlbionClusterData Index()
         {
             return _albionClusterData;
         }

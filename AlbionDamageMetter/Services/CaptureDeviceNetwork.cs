@@ -11,12 +11,13 @@ namespace AlbionDamageMetter.Services
         private readonly ILogger<CaptureDeviceNetwork> _logger;
         private readonly PhotonParser _receiver;
 
-        public CaptureDeviceNetwork(AlbionClusterData clusterDataController,
+        public CaptureDeviceNetwork(AlbionClusterData albionClusterData,
+            AlbionEntityData albionEntityData,
             ILogger<CaptureDeviceNetwork> logger)
         {
             _capturedDevices.AddRange(CaptureDeviceList.Instance);
             _logger = logger;
-            _receiver = new AlbionPackageParser(clusterDataController);
+            _receiver = new AlbionPackageParser(albionClusterData, albionEntityData);
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)

@@ -9,18 +9,23 @@ namespace AlbionDamageMetter.Albion
     public class AlbionPackageParser : PhotonParser
     {
         private readonly ChangeClusterResponseHandler _changeClusterResponseHandler;
+        private readonly JoinResponseHandler _joinResponseHandler;
+        private readonly NewCharacterEventHandler _newCharacterEventHandler;
         private readonly PartyChangedOrderEventHandler _partyChangedOrderEventHandler;
         private readonly PartyDisbandedEventHandler _partyDisbandedEventHandler;
         private readonly PartyPlayerJoinedEventHandler _partyPlayerJoinedEventHandler;
         private readonly PartyPlayerLeftEventHandler _partyPlayerLeftEventHandler;
         
-        public AlbionPackageParser(AlbionClusterData clusterDataController)
+        public AlbionPackageParser(AlbionClusterData albionClusterData,
+            AlbionEntityData albionEntityData)
         {
-            _changeClusterResponseHandler = new ChangeClusterResponseHandler(clusterDataController);
-            _partyChangedOrderEventHandler = new PartyChangedOrderEventHandler();
-            _partyDisbandedEventHandler = new PartyDisbandedEventHandler();
-            _partyPlayerJoinedEventHandler = new PartyPlayerJoinedEventHandler();
-            _partyPlayerLeftEventHandler = new PartyPlayerLeftEventHandler();
+            _changeClusterResponseHandler = new ChangeClusterResponseHandler(albionClusterData);
+            _joinResponseHandler = new JoinResponseHandler(albionClusterData, albionEntityData);
+            _newCharacterEventHandler = new NewCharacterEventHandler(albionEntityData);
+            _partyChangedOrderEventHandler = new PartyChangedOrderEventHandler(albionEntityData);
+            _partyDisbandedEventHandler = new PartyDisbandedEventHandler(albionEntityData);
+            _partyPlayerJoinedEventHandler = new PartyPlayerJoinedEventHandler(albionEntityData);
+            _partyPlayerLeftEventHandler = new PartyPlayerLeftEventHandler(albionEntityData);
         }
 
         protected override void OnEvent(byte code, Dictionary<byte, object> parameters)
@@ -31,11 +36,13 @@ namespace AlbionDamageMetter.Albion
             {
                 return;
             }
-
             Task.Run(async () =>
             {
                 switch (eventCode)
                 {
+                    case EventCodes.NewCharacter:
+                        await _newCharacterEventHandler.OnActionAsync(new NewCharacterEvent(parameters));
+                        return;
                     case EventCodes.PartyChangedOrder:
                         await _partyChangedOrderEventHandler.OnActionAsync(new PartyChangedOrderEvent(parameters));
                         return;
@@ -69,10 +76,11 @@ namespace AlbionDamageMetter.Albion
             {
                 switch (opCode)
                 {
+                    case OperationCodes.Join:
+                        await _joinResponseHandler.OnActionAsync(new JoinResponse(parameters));
+                        return;
                     case OperationCodes.ChangeCluster:
                         await _changeClusterResponseHandler.OnActionAsync(new ChangeClusterResponse(parameters));
-                        return;
-                    case OperationCodes.PartyMakeLeader:
                         return;
                 }
             });

@@ -30,5 +30,11 @@ namespace AlbionDamageMetter.Albion
 
             MainClusterIndex = mainClusterIndex;
         }
+
+        public void SetJoinClusterInfo(string index, string mainClusterIndex)
+        {
+            Index ??= index;
+            MainClusterIndex ??= mainClusterIndex;
+        }
     }
 }
