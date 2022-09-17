@@ -7,6 +7,7 @@ namespace AlbionDamageMetter.Albion.Network.Handler
         public async Task OnActionAsync(PartyChangedOrderEvent value)
         {
             // set party
+            await Task.CompletedTask;
         }
     }
 }

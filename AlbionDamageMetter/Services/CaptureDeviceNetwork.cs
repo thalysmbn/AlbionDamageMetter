@@ -11,11 +11,12 @@ namespace AlbionDamageMetter.Services
         private readonly ILogger<CaptureDeviceNetwork> _logger;
         private readonly PhotonParser _receiver;
 
-        public CaptureDeviceNetwork(ILogger<CaptureDeviceNetwork> logger)
+        public CaptureDeviceNetwork(AlbionClusterData clusterDataController,
+            ILogger<CaptureDeviceNetwork> logger)
         {
             _capturedDevices.AddRange(CaptureDeviceList.Instance);
             _logger = logger;
-            _receiver = new AlbionPackageParser();
+            _receiver = new AlbionPackageParser(clusterDataController);
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -43,7 +44,7 @@ namespace AlbionDamageMetter.Services
         {
             var packet = Packet.ParsePacket(e.GetPacket().LinkLayerType, e.GetPacket().Data).Extract<UdpPacket>();
             if (packet != null && (packet.SourcePort == 5056 || packet.DestinationPort == 5056))
-                _receiver.ReceivePacket(packet.PayloadData);
+                try { _receiver.ReceivePacket(packet.PayloadData); } catch { }
         }
     }
 }

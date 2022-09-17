@@ -13,4 +13,8 @@
     <PackageReference Include="SharpPcap" Version="6.2.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="GameFiles\" />
+  </ItemGroup>
+
 </Project>

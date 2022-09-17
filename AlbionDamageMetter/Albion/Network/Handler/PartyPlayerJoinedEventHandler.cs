@@ -7,6 +7,7 @@ namespace AlbionDamageMetter.Albion.Network.Handler
         public async Task OnActionAsync(PartyPlayerJoinedEvent value)
         {
             if (value?.UserGuid == null) return;
+            await Task.CompletedTask;
         }
     }
 }

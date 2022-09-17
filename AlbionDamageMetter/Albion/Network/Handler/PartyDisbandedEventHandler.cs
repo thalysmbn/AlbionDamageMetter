@@ -7,6 +7,7 @@ namespace AlbionDamageMetter.Albion.Network.Handler
         public async Task OnActionAsync(PartyDisbandedEvent value)
         {
             // reset party
+            await Task.CompletedTask;
         }
     }
 }

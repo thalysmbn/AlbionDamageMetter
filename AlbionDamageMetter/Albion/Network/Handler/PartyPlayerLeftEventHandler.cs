@@ -6,6 +6,7 @@ namespace AlbionDamageMetter.Albion.Network.Handler
     {
         public async Task OnActionAsync(PartyPlayerLeftEvent value)
         {
+            await Task.CompletedTask;
         }
     }
 }

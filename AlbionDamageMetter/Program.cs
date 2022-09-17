@@ -1,4 +1,5 @@
 using AlbionDamageMetter;
+using AlbionDamageMetter.Albion;
 using Serilog;
 using Serilog.Events;
 
@@ -13,5 +14,5 @@ var builder = Host.CreateDefaultBuilder(args)
     });
 
 var app = builder.Build();
-
-await app.RunAsync();
+if (AlbionWorldData.GetDataListFromJson())
+    await app.RunAsync();
