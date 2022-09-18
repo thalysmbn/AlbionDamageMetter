@@ -1,5 +1,6 @@
 ﻿using AlbionDamageMetter.Albion.Enums;
 using AlbionDamageMetter.Albion.Models.NetworkModel;
+using AlbionDamageMetter.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Concurrent;
 
@@ -7,6 +8,7 @@ namespace AlbionDamageMetter.Albion
 {
     public class AlbionEntityData
     {
+        public ConcurrentDictionary<long, double> LastPlayersHealth = new();
         private readonly ConcurrentDictionary<Guid, PlayerGameObject> _knownEntities = new();
         private readonly ConcurrentDictionary<Guid, string> _knownPartyEntities = new();
 
@@ -129,5 +131,80 @@ namespace AlbionDamageMetter.Albion
         }
 
         public KeyValuePair<Guid, PlayerGameObject>? GetLocalEntity() => _knownEntities?.ToArray().FirstOrDefault(x => x.Value.ObjectSubType == GameObjectSubType.LocalPlayer);
+
+        public void AddDamage(long objectId, long causerId, double healthChange, double newHealthValue)
+        {
+            var gameObject = GetEntity(causerId);
+            var gameObjectValue = gameObject?.Value;
+
+            if (gameObject?.Value == null
+                || gameObject.Value.Value?.ObjectType != GameObjectType.Player
+                || !IsEntityInParty(gameObject.Value.Value.Name)
+                )
+            {
+                return;
+            }
+
+            if (GetHealthChangeType(healthChange) == HealthChangeType.Damage)
+            {
+                var damageChangeValue = (int)Math.Round(healthChange.ToPositiveFromNegativeOrZero(), MidpointRounding.AwayFromZero);
+                if (damageChangeValue <= 0)
+                {
+                    return;
+                }
+
+                gameObject.Value.Value.Damage += damageChangeValue;
+            }
+
+            if (GetHealthChangeType(healthChange) == HealthChangeType.Heal)
+            {
+                var healChangeValue = healthChange;
+                if (healChangeValue <= 0)
+                {
+                    return;
+                }
+
+                if (IsMaxHealthReached(objectId, newHealthValue))
+                {
+                    return;
+                }
+
+                gameObject.Value.Value.Heal += (int)Math.Round(healChangeValue, MidpointRounding.AwayFromZero);
+            }
+
+            gameObjectValue.CombatStart ??= DateTime.UtcNow;
+        }
+
+        public bool IsMaxHealthReached(long objectId, double newHealthValue)
+        {
+            var playerHealth = LastPlayersHealth?.ToArray().FirstOrDefault(x => x.Key == objectId);
+            if (playerHealth?.Value.CompareTo(newHealthValue) == 0)
+            {
+                return true;
+            }
+
+            SetLastPlayersHealth(objectId, newHealthValue);
+            return false;
+        }
+
+        private void SetLastPlayersHealth(long key, double value)
+        {
+            if (LastPlayersHealth.ContainsKey(key))
+            {
+                LastPlayersHealth[key] = value;
+            }
+            else
+            {
+                try
+                {
+                    LastPlayersHealth.TryAdd(key, value);
+                }
+                catch (Exception e)
+                {
+                }
+            }
+        }
+
+        private static HealthChangeType GetHealthChangeType(double healthChange) => healthChange <= 0 ? HealthChangeType.Damage : HealthChangeType.Heal;
     }
 }

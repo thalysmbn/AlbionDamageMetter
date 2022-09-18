@@ -8,9 +8,9 @@ namespace AlbionDamageMetter.Albion.Network.Handler
         private readonly AlbionClusterData _albionClusterData;
         private readonly AlbionEntityData _albionEntityData;
 
-        public JoinResponseHandler(AlbionClusterData _albionClusterData, AlbionEntityData albionEntityData)
+        public JoinResponseHandler(AlbionClusterData albionClusterData, AlbionEntityData albionEntityData)
         {
-            _albionClusterData = _albionClusterData;
+            _albionClusterData = albionClusterData;
             _albionEntityData = albionEntityData;
         }
 

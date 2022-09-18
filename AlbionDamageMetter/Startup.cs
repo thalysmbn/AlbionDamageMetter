@@ -1,5 +1,6 @@
 ﻿using AlbionDamageMetter.Albion;
 using AlbionDamageMetter.Services;
+using Proggmatic.SpaServices.VueCli;
 using Serilog;
 
 namespace AlbionDamageMetter
@@ -17,11 +18,18 @@ namespace AlbionDamageMetter
             services.AddSingleton<AlbionClusterData>()
                 .AddSingleton<AlbionEntityData>();
             services.AddHostedService<CaptureDeviceNetwork>();
+            
+            services.AddSpaStaticFiles(configuration =>
+            {
+                configuration.RootPath = "ClientApp/dist";
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseSerilogRequestLogging();
+            app.UseStaticFiles();
+            app.UseSpaStaticFiles();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -33,8 +41,8 @@ namespace AlbionDamageMetter
                 app.UseHsts();
             }
 
-            app.UseStaticFiles();
             app.UseRouting();
+            app.UseSerilogRequestLogging();
 
             app.UseEndpoints(endpoints =>
             {
@@ -42,6 +50,14 @@ namespace AlbionDamageMetter
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
                 endpoints.MapControllers();
+            });
+
+            app.UseSpa(spa =>
+            {
+                if (env.IsDevelopment())
+                {
+                    spa.UseVueCliServer();
+                }
             });
 
         }

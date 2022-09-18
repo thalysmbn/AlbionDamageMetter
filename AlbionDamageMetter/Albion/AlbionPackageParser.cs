@@ -9,6 +9,7 @@ namespace AlbionDamageMetter.Albion
     public class AlbionPackageParser : PhotonParser
     {
         private readonly ChangeClusterResponseHandler _changeClusterResponseHandler;
+        private readonly HealthUpdateEventHandler _healthUpdateEventHandler;
         private readonly JoinResponseHandler _joinResponseHandler;
         private readonly NewCharacterEventHandler _newCharacterEventHandler;
         private readonly PartyChangedOrderEventHandler _partyChangedOrderEventHandler;
@@ -20,6 +21,7 @@ namespace AlbionDamageMetter.Albion
             AlbionEntityData albionEntityData)
         {
             _changeClusterResponseHandler = new ChangeClusterResponseHandler(albionClusterData);
+            _healthUpdateEventHandler = new HealthUpdateEventHandler(albionEntityData);
             _joinResponseHandler = new JoinResponseHandler(albionClusterData, albionEntityData);
             _newCharacterEventHandler = new NewCharacterEventHandler(albionEntityData);
             _partyChangedOrderEventHandler = new PartyChangedOrderEventHandler(albionEntityData);
@@ -40,6 +42,9 @@ namespace AlbionDamageMetter.Albion
             {
                 switch (eventCode)
                 {
+                    case EventCodes.HealthUpdate:
+                        await _healthUpdateEventHandler.OnActionAsync(new HealthUpdateEvent(parameters));
+                        return;
                     case EventCodes.NewCharacter:
                         await _newCharacterEventHandler.OnActionAsync(new NewCharacterEvent(parameters));
                         return;

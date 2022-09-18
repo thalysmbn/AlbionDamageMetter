@@ -1,0 +1,136 @@
+.v-application {
+  .killBoard, .battleBoard {
+    background-color: transparent;
+
+    .table {
+      background: none;
+    }
+    
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0 4px;
+
+      .v-data-table > .v-data-table__wrapper > table > tbody > tr:not(:last-child) > td:not(.v-data-table__mobile-row) {
+        border: none;
+      }
+    
+      .event {
+        background-color: #1c1f33;
+
+        td {
+          font-size: 11px;
+          color: #fff;
+          padding: 0 5px;
+          .nick {
+            font-weight: 700;
+            text-transform: uppercase;
+          }
+          .text {
+            text-align: center;
+            padding: 8px 4px;
+            -ms-writing-mode: tb-lr;
+            writing-mode: vertical-lr;
+            transform: rotate(180deg);
+            height: 100%;
+
+            &.kill {
+              background: #4e9968;
+            }
+
+            &.death {
+              background: #cf4d3d;
+            }
+
+            &.assist {
+              background: #2d4160;
+            }
+          }
+        }
+
+        .name {
+          font-weight: bold;
+        }
+
+        &.kill {
+          background-color: rgba(78,239,120,.1);
+        }
+
+        &.death {
+          background-color: rgba(238,99,82,.1);
+        }
+
+        &.assist {
+          background-color: rgba(136,217,213,.1);
+        }
+      }
+    }
+  }
+
+  .playerStats, .guildStats {
+    .ratio {
+      margin-bottom: 10px;
+    }
+
+    .table {
+      background: none;
+
+      table {
+        border-collapse: separate;
+        border-spacing: 0 4px;
+
+        .v-data-table > .v-data-table__wrapper > table > tbody > tr:not(:last-child) > td:not(.v-data-table__mobile-row) {
+          border: none;
+        }
+      }
+    }
+
+    .v-subheader {
+      background: none;
+      color: #ffffff;
+    }
+
+    .v-data-table {
+      tr {
+        background-color: #131526;
+        color: #ccc;
+      }
+    }
+  }
+}
+
+.theme--dark.v-data-table > .v-data-table__wrapper > table > tbody > tr:not(:last-child) > td:not(.v-data-table__mobile-row) {
+  border-bottom: none;
+}
+
+.v-skeleton-loader__table-heading,
+.v-skeleton-loader__card-heading,
+.v-skeleton-loader__list-item-avatar {
+  background: none!important;
+}
+
+.theme--dark.v-data-table .v-data-footer {
+  border-top: none;
+}
+
+.theme--dark.v-list {
+  background: #0c0d1e;
+  box-shadow: none!important;
+  color: #FFFFFF;
+}
+
+.text-xs {
+  font-size: 10px;
+}
+
+.text-bold {
+  font-weight: 700;
+}
+
+.text-white {
+  color: #fff!important;
+}
+
+.theme--dark.v-text-field--solo > .v-input__control > .v-input__slot {
+  background: #050616;
+}

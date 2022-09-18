@@ -35,6 +35,7 @@ namespace AlbionDamageMetter.Albion
         {
             Index ??= index;
             MainClusterIndex ??= mainClusterIndex;
+            ClusterInfoFullyAvailable = true;
         }
     }
 }

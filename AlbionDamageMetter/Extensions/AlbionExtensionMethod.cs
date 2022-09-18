@@ -63,5 +63,15 @@ namespace AlbionDamageMetter.Extensions
                 .Select((v, i) => new { Key = i, Value = v })
                 .ToDictionary(o => o.Key, o => o.Value);
         }
+
+        public static double ToPositiveFromNegativeOrZero(this double healthChange)
+        {
+            return healthChange >= 0d ? 0d : healthChange.ToPositive();
+        }
+
+        public static double ToPositive(this double value)
+        {
+            return value > 0 ? value : -value;
+        }
     }
 }
