@@ -121,5 +121,18 @@ namespace AlbionDamageMetter.Albion.Models.NetworkModel
                 _queueHeal.Enqueue(heal);
             }
         }
+
+        public void Reset()
+        {
+            lock (this._lock)
+            {
+                Heal = 0;
+                Damage = 0;
+                HealList.Clear();
+                DamageList.Clear();
+                _queueHeal.Clear();
+                _queueDamage.Clear();
+            }
+        }
     }
 }

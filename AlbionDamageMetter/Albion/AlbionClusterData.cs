@@ -1,4 +1,6 @@
 ﻿using AlbionDamageMetter.Albion.Enums;
+using AlbionDamageMetter.Albion.Models.Database;
+using AlbionDamageMetter.Services;
 
 namespace AlbionDamageMetter.Albion
 {
@@ -17,6 +19,33 @@ namespace AlbionDamageMetter.Albion
 
         // Join data
         public string MainClusterIndex { get; private set; }
+
+        private AlbionEntityData AlbionEntityData { get; }
+        private LocalDatabaseJson LocalDatabaseJson { get; }
+
+        public AlbionClusterData(LocalDatabaseJson localDatabaseJson, AlbionEntityData albionEntityData)
+        {
+            LocalDatabaseJson = localDatabaseJson;
+            AlbionEntityData = albionEntityData;
+        }
+
+        public void SaveHistory()
+        {
+            var clusterHistory = LocalDatabaseJson.GetClusterPartyHistory();
+            clusterHistory.InsertOne(new ClusterPartyHistoryDatabaseModel
+            {
+                Entered = Entered,
+                MapType = MapType,
+                Guid = Guid,
+                Index = Index,
+                InstanceName = InstanceName,
+                WorldMapDataType = WorldMapDataType,
+                DungeonInformation = DungeonInformation,
+                MainClusterIndex = MainClusterIndex,
+                Entities = AlbionEntityData.GetAllEntities(true),
+                CombatHistory = AlbionEntityData.GetCombatHistory()
+            });
+        }
 
         public void SetClusterInfo(MapType mapType, Guid? mapGuid, string clusterIndex, string instanceName, string worldMapDataType, byte[] dungeonInformation, string mainClusterIndex)
         {

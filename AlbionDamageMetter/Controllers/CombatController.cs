@@ -38,7 +38,7 @@ namespace AlbionDamageMetter.Controllers
         {
             var list = new List<Object[]>();
             var members = _albionEntityData.GetAllEntities(true);
-            var selectOrderedMembers = members.Select(i => new { i.Value.Name, i.Value.Damage });
+            var selectOrderedMembers = members.Select(i => new { i.Value.Name, i.Value.Damage }).OrderByDescending(x => x.Damage);
             foreach (var member in members)
             {
                 Object[] arrayUserData = { member.Value.Name, member.Value.Damage };
@@ -49,14 +49,17 @@ namespace AlbionDamageMetter.Controllers
         }
 
         [Route("totalHealing")]
-        public Array TotalHealing()
+        public object[][] TotalHealing()
         {
+            var list = new List<Object[]>();
             var members = _albionEntityData.GetAllEntities(true);
-            foreach (var member in members.Select(i => new { i.Value.Name, i.Value.Heal }))
+            var selectOrderedMembers = members.Select(i => new { i.Value.Name, i.Value.Damage }).OrderByDescending(x => x.Damage);
+            foreach (var member in members)
             {
-
+                Object[] arrayUserData = { member.Value.Name, member.Value.Damage };
+                list.Add(arrayUserData);
             }
-            return members.Select(i => new { i.Value.Name, i.Value.Heal }).Distinct().OrderByDescending(x => x.Heal).ToArray();
+            return list.ToArray();
         }
     }
 }

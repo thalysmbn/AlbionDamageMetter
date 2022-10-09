@@ -20,7 +20,7 @@ namespace AlbionDamageMetter.Albion
         public AlbionPackageParser(AlbionClusterData albionClusterData,
             AlbionEntityData albionEntityData)
         {
-            _changeClusterResponseHandler = new ChangeClusterResponseHandler(albionClusterData);
+            _changeClusterResponseHandler = new ChangeClusterResponseHandler(albionClusterData, albionEntityData);
             _healthUpdateEventHandler = new HealthUpdateEventHandler(albionEntityData);
             _joinResponseHandler = new JoinResponseHandler(albionClusterData, albionEntityData);
             _newCharacterEventHandler = new NewCharacterEventHandler(albionEntityData);

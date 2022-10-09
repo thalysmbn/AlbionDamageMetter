@@ -1,5 +1,6 @@
 ﻿using AlbionDamageMetter.Albion.Enums;
 using AlbionDamageMetter.Albion.Models.NetworkModel;
+using AlbionDamageMetter.Albion.Network.Events;
 using AlbionDamageMetter.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Concurrent;
@@ -12,6 +13,7 @@ namespace AlbionDamageMetter.Albion
         public ConcurrentDictionary<long, double> LastPlayersHealth = new();
         private readonly ConcurrentDictionary<Guid, PlayerGameObject> _knownEntities = new();
         private readonly ConcurrentDictionary<Guid, string> _knownPartyEntities = new();
+        private readonly LinkedList<HealthUpdateEvent> _combatHistory = new();
 
         private System.Timers.Timer _timer;
 
@@ -158,6 +160,30 @@ namespace AlbionDamageMetter.Albion
 
         public KeyValuePair<Guid, PlayerGameObject>? GetLocalEntity() => _knownEntities?.ToArray().FirstOrDefault(x => x.Value.ObjectSubType == GameObjectSubType.LocalPlayer);
 
+        public void ResetHistory()
+        {
+            _combatHistory.Clear();
+            foreach (var entity in _knownEntities.Values)
+            {
+                entity.Reset();
+            }
+        }
+
+        public void AddHistory(HealthUpdateEvent healthUpdateEvent)
+        {
+            var gameObject = GetEntity(healthUpdateEvent.CauserId);
+            var gameObjectValue = gameObject?.Value;
+
+            if (gameObject?.Value == null
+                || gameObject.Value.Value?.ObjectType != GameObjectType.Player
+                || !IsEntityInParty(gameObject.Value.Value.Name)
+                )
+            {
+                return;
+            }
+            _combatHistory.AddLast(healthUpdateEvent);
+        }
+
         public void AddDamage(long objectId, long causerId, double healthChange, double newHealthValue)
         {
             var gameObject = GetEntity(causerId);
@@ -231,5 +257,10 @@ namespace AlbionDamageMetter.Albion
         }
 
         private static HealthChangeType GetHealthChangeType(double healthChange) => healthChange <= 0 ? HealthChangeType.Damage : HealthChangeType.Heal;
+
+        public HealthUpdateEvent[] GetCombatHistory()
+        {
+            return _combatHistory.ToArray();
+        }
     }
 }

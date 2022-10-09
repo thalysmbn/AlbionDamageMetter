@@ -15,7 +15,8 @@ namespace AlbionDamageMetter
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddSingleton<AlbionClusterData>()
+            services.AddSingleton<LocalDatabaseJson>()
+                .AddSingleton<AlbionClusterData>()
                 .AddSingleton<AlbionEntityData>();
             services.AddHostedService<CaptureDeviceNetwork>();
             
