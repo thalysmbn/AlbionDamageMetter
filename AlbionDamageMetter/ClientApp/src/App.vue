@@ -55,7 +55,7 @@
         <template v-else> </template>
       </v-list>
     </v-navigation-drawer>
-    <v-app-bar app :clipped-left="clipped" color="#0a0b1a" dark>
+    <v-app-bar app :clipped-left="clipped" dark>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       <v-btn class="d-none d-lg-flex" icon @click.stop="miniVariant = !miniVariant">
         <v-icon v-html="miniVariant ? 'mdi-chevron-right' : 'mdi-chevron-left'"></v-icon>
@@ -139,22 +139,4 @@ export default class App extends Vue {
 </script>
 
 <style lang="scss">
-a {
-  color: #212121 !important;
-  text-decoration: none;
-}
-
-.main {
-  background: radial-gradient(circle, #1c1f33 0, #00000d 100%);
-
-  .v-list-item .v-list-item__title,
-  .v-list-item .v-icon {
-    color: #c6ddf3 !important;
-  }
-
-  .v-list-item:hover .v-list-item__title,
-  .v-list-item:hover .v-icon {
-    color: #ffffff !important;
-  }
-}
 </style>

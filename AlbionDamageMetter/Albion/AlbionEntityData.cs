@@ -3,6 +3,7 @@ using AlbionDamageMetter.Albion.Models.NetworkModel;
 using AlbionDamageMetter.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Concurrent;
+using System.Timers;
 
 namespace AlbionDamageMetter.Albion
 {
@@ -11,6 +12,27 @@ namespace AlbionDamageMetter.Albion
         public ConcurrentDictionary<long, double> LastPlayersHealth = new();
         private readonly ConcurrentDictionary<Guid, PlayerGameObject> _knownEntities = new();
         private readonly ConcurrentDictionary<Guid, string> _knownPartyEntities = new();
+
+        private System.Timers.Timer _timer;
+
+        public AlbionEntityData()
+        {
+            _timer = new System.Timers.Timer
+            {
+                Interval = 1000,
+                Enabled = true
+            };
+            _timer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
+            _timer.Start();
+        }
+
+        private void OnTimedEvent(object source, ElapsedEventArgs e)
+        {
+            foreach (var entitie in _knownEntities.Values)
+            {
+                entitie.OnTimedEvent();
+            }
+        }
 
         public void AddEntity(long objectId, Guid userGuid, Guid? interactGuid, string name, string guild, string alliance,
             CharacterEquipment characterEquipment, GameObjectType objectType, GameObjectSubType objectSubType)
@@ -29,6 +51,10 @@ namespace AlbionDamageMetter.Albion
                     InteractGuid = interactGuid,
                     ObjectSubType = objectSubType,
                     CharacterEquipment = characterEquipment ?? oldEntity.CharacterEquipment,
+                    Damage = oldEntity.Damage,
+                    DamageList = oldEntity.DamageList,
+                    HealList = oldEntity.HealList,
+                    Dps = oldEntity.Dps
                 };
             }
             else
@@ -152,8 +178,7 @@ namespace AlbionDamageMetter.Albion
                 {
                     return;
                 }
-
-                gameObject.Value.Value.Damage += damageChangeValue;
+                gameObject.Value.Value.AddDamage(DateTime.Now, damageChangeValue);
             }
 
             if (GetHealthChangeType(healthChange) == HealthChangeType.Heal)
@@ -169,7 +194,7 @@ namespace AlbionDamageMetter.Albion
                     return;
                 }
 
-                gameObject.Value.Value.Heal += (int)Math.Round(healChangeValue, MidpointRounding.AwayFromZero);
+                gameObject.Value.Value.AddHealing(DateTime.Now, (int)Math.Round(healChangeValue, MidpointRounding.AwayFromZero));
             }
 
             gameObjectValue.CombatStart ??= DateTime.UtcNow;

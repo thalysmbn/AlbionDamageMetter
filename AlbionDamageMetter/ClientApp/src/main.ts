@@ -3,11 +3,15 @@ import './plugins/axios'
 import i18n from './plugins/i18n'
 import vuetify from './plugins/vuetify'
 import App from './App.vue'
+import Chart from 'chart.js'
+import Chartkick from 'vue-chartkick'
 import router from './router'
 import store from '@/store/index'
 import './registerServiceWorker'
 import dateFilter from '@/filters/date.filter'
 import moment from 'moment'
+
+Vue.use(Chartkick.use(Chart))
 
 Vue.config.productionTip = false
 
