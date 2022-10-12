@@ -1,5 +1,7 @@
 ﻿using AlbionDamageMetter.Albion.Enums;
 using AlbionDamageMetter.Albion.Models.Database;
+using AlbionDamageMetter.Albion.Models.NetworkModel;
+using AlbionDamageMetter.Albion.Network.Events;
 using AlbionDamageMetter.Services;
 
 namespace AlbionDamageMetter.Albion
@@ -8,17 +10,7 @@ namespace AlbionDamageMetter.Albion
     {
         public bool ClusterInfoFullyAvailable { get; set; }
 
-        // Change cluster data
-        public DateTime Entered { get; private set; }
-        public MapType MapType { get; private set; } = MapType.Unknown;
-        public Guid? Guid { get; private set; }
-        public string Index { get; private set; }
-        public string InstanceName { get; private set; }
-        public string WorldMapDataType { get; private set; }
-        public byte[] DungeonInformation { get; private set; }
-
-        // Join data
-        public string MainClusterIndex { get; private set; }
+        public ClusterPartyHistoryDatabaseModel CurrentCluster { get; private set; } = new ClusterPartyHistoryDatabaseModel();
 
         private AlbionEntityData AlbionEntityData { get; }
         private LocalDatabaseJson LocalDatabaseJson { get; }
@@ -32,38 +24,31 @@ namespace AlbionDamageMetter.Albion
         public void SaveHistory()
         {
             var clusterHistory = LocalDatabaseJson.GetClusterPartyHistory();
-            clusterHistory.InsertOne(new ClusterPartyHistoryDatabaseModel
-            {
-                Entered = Entered,
-                MapType = MapType,
-                Guid = Guid,
-                Index = Index,
-                InstanceName = InstanceName,
-                WorldMapDataType = WorldMapDataType,
-                DungeonInformation = DungeonInformation,
-                MainClusterIndex = MainClusterIndex,
-                Entities = AlbionEntityData.GetAllEntities(true),
-                CombatHistory = AlbionEntityData.GetCombatHistory()
-            });
+            CurrentCluster.Entities = AlbionEntityData.GetAllEntities(true);
+            CurrentCluster.CombatHistory = AlbionEntityData.GetCombatHistory();
+            clusterHistory.InsertOne(CurrentCluster);
+
         }
 
         public void SetClusterInfo(MapType mapType, Guid? mapGuid, string clusterIndex, string instanceName, string worldMapDataType, byte[] dungeonInformation, string mainClusterIndex)
         {
-            Entered = DateTime.Now;
-            MapType = mapType;
-            Guid = mapGuid;
-            Index = clusterIndex;
-            InstanceName = instanceName;
-            WorldMapDataType = worldMapDataType;
-            DungeonInformation = dungeonInformation;
-
-            MainClusterIndex = mainClusterIndex;
+            CurrentCluster = new ClusterPartyHistoryDatabaseModel
+            {
+                Entered = DateTime.Now,
+                MapType = mapType,
+                Guid = mapGuid,
+                Index = clusterIndex,
+                InstanceName = instanceName,
+                WorldMapDataType = worldMapDataType,
+                DungeonInformation = dungeonInformation,
+                MainClusterIndex = mainClusterIndex
+            };
         }
 
         public void SetJoinClusterInfo(string index, string mainClusterIndex)
         {
-            Index ??= index;
-            MainClusterIndex ??= mainClusterIndex;
+            CurrentCluster.Index = index;
+            CurrentCluster.MainClusterIndex = mainClusterIndex;
             ClusterInfoFullyAvailable = true;
         }
     }

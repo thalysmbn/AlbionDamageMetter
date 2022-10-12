@@ -10,15 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="JsonFlatFileDataStore" Version="2.3.0" />
     <PackageReference Include="PacketDotNet" Version="1.4.6" />
     <PackageReference Include="PhotonPackageParser" Version="4.1.0" />
     <PackageReference Include="Proggmatic.SpaServices.VueCli" Version="6.0.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
     <PackageReference Include="SharpPcap" Version="6.2.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="GameFiles\" />
   </ItemGroup>
   
   <ItemGroup>
@@ -27,6 +24,12 @@
 
     <!-- Files not to publish (note that the 'dist' subfolders are re-added below) -->
     <Content Remove="ClientApp\**" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Update="data.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
     
   <Target Name="RunWebpack" AfterTargets="ComputeFilesToPublish">
