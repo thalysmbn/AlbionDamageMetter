@@ -16,10 +16,14 @@ namespace AlbionDamageMetter.Albion.Network.Handler
 
         public async Task OnActionAsync(JoinResponse value)
         {
+            Console.WriteLine("SetJoinClusterInfo");
+
             _albionClusterData.SetJoinClusterInfo(value.MapIndex, value.MainMapIndex);
 
             AddEntity(value.UserObjectId, value.UserGuid, value.InteractGuid,
                 value.Username, value.GuildName, value.AllianceName, GameObjectType.Player, GameObjectSubType.LocalPlayer);
+
+            _albionClusterData.ClusterInfoFullyAvailable = true;
 
             await Task.CompletedTask;
         }

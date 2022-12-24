@@ -13,8 +13,10 @@ namespace AlbionDamageMetter.Albion.Network.Handler
 
         public async Task OnActionAsync(PartyPlayerJoinedEvent value)
         {
-            if (value?.UserGuid == null) return;
-            _albionEntityData.AddToParty((Guid)value.UserGuid, value.Username);
+            if (value?.UserGuid != null)
+            {
+                _albionEntityData.AddToParty((Guid)value.UserGuid, value.Username);
+            }
             await Task.CompletedTask;
         }
     }

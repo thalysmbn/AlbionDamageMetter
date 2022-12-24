@@ -35,7 +35,7 @@ namespace AlbionDamageMetter.Albion.Network.Time
         public static readonly GameTimeStamp MaxValue = new GameTimeStamp(long.MaxValue);
         public static readonly GameTimeStamp MinValue = new GameTimeStamp(long.MinValue);
         public static readonly GameTimeStamp Zero = new GameTimeStamp(0L);
-        public readonly long Ticks;
+        public long Ticks { get; private set; }
 
         [ThreadStatic] private static TimeSourceDelegate pTimeSource;
 
@@ -183,9 +183,6 @@ namespace AlbionDamageMetter.Albion.Network.Time
                     flag = true;
                     break;
                 }
-
-            if (!flag)
-                throw new SerializationException("Serialization: Missing GameTimeStamp Data");
 
             Ticks = ticks;
         }

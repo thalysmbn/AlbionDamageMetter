@@ -17,11 +17,19 @@ namespace AlbionDamageMetter.Controllers
 
         public PartyResultModel Index()
         {
+            var list = new List<object[]>();
             var members = _albionEntityData.GetAllEntities(true);
+            var selectOrderedMembers = members.Select(i => new { i.Value.Name, i.Value.Damage, i.Value.Heal });
+            foreach (var member in selectOrderedMembers)
+            {
+                list.Add(new object[] { member.Name, member.Damage });
+
+            }
             return new PartyResultModel
             {
-                HighestDamage = members.Count > 0 ? members.Max(x => x.Value.Damage) : 0,
-                HighestHeal = members.Count > 0 ? members.Max(x => x.Value.Heal) : 0,
+                HighestDamage = members.Count > 0 ? selectOrderedMembers.Max(x => x.Damage) : 0,
+                HighestHeal = members.Count > 0 ? selectOrderedMembers.Max(x => x.Heal) : 0,
+                DamageMember = list.ToArray(),
                 Members = members
             };
         }

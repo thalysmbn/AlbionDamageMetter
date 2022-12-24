@@ -14,6 +14,7 @@ namespace AlbionDamageMetter.Albion.Network.Handler
 
         public async Task OnActionAsync(HealthUpdateEvent value)
         {
+            _albionEntityData.AddHistory(value);
             _albionEntityData.AddDamage(value.ObjectId, value.CauserId, value.HealthChange, value.NewHealthValue);
             await Task.CompletedTask;
         }

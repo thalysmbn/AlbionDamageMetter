@@ -9,13 +9,15 @@ namespace AlbionDamageMetter
     {
         public Startup(IWebHostEnvironment currentEnvironment, IConfiguration configuration)
         {
+            WorldData.GetDataListFromJson();
         }
 
 
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddSingleton<AlbionClusterData>()
+            services.AddSingleton<LocalDatabaseJson>()
+                .AddSingleton<AlbionClusterData>()
                 .AddSingleton<AlbionEntityData>();
             services.AddHostedService<CaptureDeviceNetwork>();
             

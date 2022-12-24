@@ -4,37 +4,36 @@
       <v-col md="12">
         <v-row justify="center">
           <v-col v-col md="12">
-            <v-window
-              v-model="window"
-              class="elevation-2"
-              vertical
-            >
-              <v-window-item>
-                <v-card flat>
-                  <v-card-text>
-                    {{ this.clusterData }}
-                  </v-card-text>
-                </v-card>
-              </v-window-item>
-            </v-window>
+            <line-chart
+              xtitle="DPS"
+              ytitle="Damage ( 3 min )"
+              data="/api/combat/damage"
+              :precision="3"
+              :curve="false"
+              :points="false"
+              :stacked="true"
+              :refresh="2"
+            ></line-chart>
           </v-col>
-        </v-row>
-      </v-col><v-col md="12">
-        <v-row justify="center">
-
-          <v-col v-col md="4">
-                <v-card flat>
-                    <p v-for="item in partyData.members" :key="item.key">
-                      <v-progress-linear
-                        :value="Math.round((item.value.damage / partyData.highestDamage) * 100)"
-                        height="25"
-                      >
-                        <strong>{{ item.value.name }}</strong>
-                      </v-progress-linear>
-                    </p>
-                </v-card>
+          <v-col v-col md="6">
+            <bar-chart
+              xtitle="Highest DPS"
+              data="/api/combat/highestDps"
+              :download="true"
+              :colors="['#dc3912']"
+              :refresh="1"
+            ></bar-chart>
           </v-col>
-          <v-col v-col md="8">
+          <v-col v-col md="6">
+            <bar-chart
+              xtitle="Total Damage"
+              data="/api/combat/totalDamage"
+              :legend="a"
+              :download="true"
+              :stacked="true"
+              :colors="['#dc3912']"
+              :refresh="1"
+            ></bar-chart>
           </v-col>
         </v-row>
       </v-col>
@@ -44,7 +43,10 @@
 
 <style lang="scss">
 .home {
-  height: 100vh;
+  .cluster {
+    padding: 0;
+    background: rgb(0, 0, 0, 0.35);
+  }
 }
 </style>
 
@@ -62,25 +64,24 @@ import { PartyResultModel } from '@/models/PartyResultModel'
     next((vm) => {
       window.scrollTo(0, 0)
       const page = vm as HomeView
-      setInterval(() => {
+      //setInterval(() => {
         page.load()
-      }, 1000);
+      //}, 1000);
     })
   }
 })
 export default class HomeView extends Vue {
-  protected isLoading = false
+  protected isLoading = true
   protected clusterData: ClusterResultModel = new ClusterResultModel
   protected partyData: PartyResultModel = new PartyResultModel
 
   protected async load(): Promise<void> {
     this.isLoading = true
     try {
-      const responseCluster = await this.$axios.get<ClusterResultModel>(`/api/cluster`)
-      this.clusterData = responseCluster.data
-
       const responseParty = await this.$axios.get<PartyResultModel>(`/api/party`)
       this.partyData = responseParty.data
+      
+      this.isLoading = false
     } catch (e) {
       console.log(e)
     }

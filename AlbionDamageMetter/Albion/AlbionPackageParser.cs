@@ -20,7 +20,7 @@ namespace AlbionDamageMetter.Albion
         public AlbionPackageParser(AlbionClusterData albionClusterData,
             AlbionEntityData albionEntityData)
         {
-            _changeClusterResponseHandler = new ChangeClusterResponseHandler(albionClusterData);
+            _changeClusterResponseHandler = new ChangeClusterResponseHandler(albionClusterData, albionEntityData);
             _healthUpdateEventHandler = new HealthUpdateEventHandler(albionEntityData);
             _joinResponseHandler = new JoinResponseHandler(albionClusterData, albionEntityData);
             _newCharacterEventHandler = new NewCharacterEventHandler(albionEntityData);
@@ -30,7 +30,7 @@ namespace AlbionDamageMetter.Albion
             _partyPlayerLeftEventHandler = new PartyPlayerLeftEventHandler(albionEntityData);
         }
 
-        protected override void OnEvent(byte code, Dictionary<byte, object> parameters)
+        protected override async void OnEvent(byte code, Dictionary<byte, object> parameters)
         {
             var eventCode = ParseEventCode(parameters);
 
@@ -38,37 +38,34 @@ namespace AlbionDamageMetter.Albion
             {
                 return;
             }
-            Task.Run(async () =>
+            switch (eventCode)
             {
-                switch (eventCode)
-                {
-                    case EventCodes.HealthUpdate:
-                        await _healthUpdateEventHandler.OnActionAsync(new HealthUpdateEvent(parameters));
-                        return;
-                    case EventCodes.NewCharacter:
-                        await _newCharacterEventHandler.OnActionAsync(new NewCharacterEvent(parameters));
-                        return;
-                    case EventCodes.PartyChangedOrder:
-                        await _partyChangedOrderEventHandler.OnActionAsync(new PartyChangedOrderEvent(parameters));
-                        return;
-                    case EventCodes.PartyDisbanded:
-                        await _partyDisbandedEventHandler.OnActionAsync(new PartyDisbandedEvent(parameters));
-                        return;
-                    case EventCodes.PartyPlayerJoined:
-                        await _partyPlayerJoinedEventHandler.OnActionAsync(new PartyPlayerJoinedEvent(parameters));
-                        return;
-                    case EventCodes.PartyPlayerLeft:
-                        await _partyPlayerLeftEventHandler.OnActionAsync(new PartyPlayerLeftEvent(parameters));
-                        return;
-                }
-            });
+                case EventCodes.HealthUpdate:
+                    await _healthUpdateEventHandler.OnActionAsync(new HealthUpdateEvent(parameters));
+                    return;
+                case EventCodes.NewCharacter:
+                    await _newCharacterEventHandler.OnActionAsync(new NewCharacterEvent(parameters));
+                    return;
+                case EventCodes.PartyChangedOrder:
+                    await _partyChangedOrderEventHandler.OnActionAsync(new PartyChangedOrderEvent(parameters));
+                    return;
+                case EventCodes.PartyDisbanded:
+                    await _partyDisbandedEventHandler.OnActionAsync(new PartyDisbandedEvent(parameters));
+                    return;
+                case EventCodes.PartyPlayerJoined:
+                    await _partyPlayerJoinedEventHandler.OnActionAsync(new PartyPlayerJoinedEvent(parameters));
+                    return;
+                case EventCodes.PartyPlayerLeft:
+                    await _partyPlayerLeftEventHandler.OnActionAsync(new PartyPlayerLeftEvent(parameters));
+                    return;
+            }
         }
 
         protected override void OnRequest(byte operationCode, Dictionary<byte, object> parameters)
         {
         }
 
-        protected override void OnResponse(byte operationCode, short returnCode, string debugMessage, Dictionary<byte, object> parameters)
+        protected override async void OnResponse(byte operationCode, short returnCode, string debugMessage, Dictionary<byte, object> parameters)
         {
             var opCode = ParseOperationCode(parameters);
 
@@ -76,19 +73,16 @@ namespace AlbionDamageMetter.Albion
             {
                 return;
             }
-
-            Task.Run(async () =>
+            Console.WriteLine($"code: {opCode}");
+            switch (opCode)
             {
-                switch (opCode)
-                {
-                    case OperationCodes.Join:
-                        await _joinResponseHandler.OnActionAsync(new JoinResponse(parameters));
-                        return;
-                    case OperationCodes.ChangeCluster:
-                        await _changeClusterResponseHandler.OnActionAsync(new ChangeClusterResponse(parameters));
-                        return;
-                }
-            });
+                case OperationCodes.Join:
+                    await _joinResponseHandler.OnActionAsync(new JoinResponse(parameters));
+                    return;
+                case OperationCodes.ChangeCluster:
+                    await _changeClusterResponseHandler.OnActionAsync(new ChangeClusterResponse(parameters));
+                    return;
+            }
         }
 
         private static EventCodes ParseEventCode(IReadOnlyDictionary<byte, object> parameters)

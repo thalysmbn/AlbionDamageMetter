@@ -36,9 +36,12 @@ namespace AlbionDamageMetter.Services
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public async Task StopAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            foreach (var device in _capturedDevices)
+            {
+                device.StopCapture();
+            }
         }
 
         private void DeviceOnPacketArrival(object sender, PacketCapture e)

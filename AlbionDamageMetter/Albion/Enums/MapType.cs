@@ -9,6 +9,7 @@
         Island,
         Hideout,
         Expedition,
-        Arena
+        Arena,
+        Mists
     }
 }
