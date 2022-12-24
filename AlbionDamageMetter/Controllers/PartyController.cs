@@ -19,10 +19,10 @@ namespace AlbionDamageMetter.Controllers
         {
             var list = new List<object[]>();
             var members = _albionEntityData.GetAllEntities(true);
-            var selectOrderedMembers = members.Select(i => new { i.Value.Name, i.Value.Damage, i.Value.Heal }).OrderByDescending(x => x.Damage);
-            foreach (var member in members)
+            var selectOrderedMembers = members.Select(i => new { i.Value.Name, i.Value.Damage, i.Value.Heal });
+            foreach (var member in selectOrderedMembers)
             {
-                list.Add(new object[] { member.Value.Name, member.Value.Damage });
+                list.Add(new object[] { member.Name, member.Damage });
 
             }
             return new PartyResultModel

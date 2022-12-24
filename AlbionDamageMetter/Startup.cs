@@ -9,6 +9,7 @@ namespace AlbionDamageMetter
     {
         public Startup(IWebHostEnvironment currentEnvironment, IConfiguration configuration)
         {
+            WorldData.GetDataListFromJson();
         }
 
 

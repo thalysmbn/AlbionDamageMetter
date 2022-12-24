@@ -2,7 +2,7 @@
 
 namespace AlbionDamageMetter.Albion.Models
 {
-    public class ClusterListModel
+    public class ClusterModel
     {
         public DateTime Entered { get; set; }
         public DateTime End { get; set; }
@@ -29,8 +29,18 @@ namespace AlbionDamageMetter.Albion.Models
         public string ClusterHistoryString1 { get; set; }
         public string ClusterHistoryString2 { get; set; }
         public string ClusterHistoryString3 { get; set; }
+        public LinkedList<HealthUpdateModel> CombatHistory { get; set; }
+
+        public IList<DamageResultModel> DamageResult { get; set; }
+
+        public IList<DamageResultModel> HealResult { get; set; }
+
+        public object[][] TotalDamageList { get; set; }
+
+        public object[][] HighestDamageList { get; set; }
+
+        public object[][] TotalHealingList { get; set; }
 
         public int Entities { get; set; }
-        public long CombatLog { get; set; }
     }
 }

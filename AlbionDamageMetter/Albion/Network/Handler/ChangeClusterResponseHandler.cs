@@ -15,9 +15,22 @@ namespace AlbionDamageMetter.Albion.Network.Handler
 
         public async Task OnActionAsync(ChangeClusterResponse value)
         {
-            _albionClusterData.SaveHistory();
-            _albionEntityData.ResetHistory();
+            Console.WriteLine("ChangeClusterResponseHandler");
+
+            await Task.Run(() =>
+            {
+                if (_albionClusterData.ClusterInfoFullyAvailable)
+                {
+                    if (_albionEntityData.GetCombatHistory().Count > 0)
+                        _albionClusterData.SaveHistory(_albionClusterData.CurrentCluster);
+                    _albionEntityData.ResetHistory();
+                }
+            });
+
+            _albionClusterData.ClusterInfoFullyAvailable = false;
+
             _albionClusterData.SetClusterInfo(value.MapType, value.Guid, value.Index, value.IslandName, value.WorldMapDataType, value.DungeonInformation, value.MainClusterIndex);
+            
             await Task.CompletedTask;
         }
     }

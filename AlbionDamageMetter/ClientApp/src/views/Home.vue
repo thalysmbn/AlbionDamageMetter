@@ -3,33 +3,37 @@
     <v-container fluid>
       <v-col md="12">
         <v-row justify="center">
-        </v-row>
-      </v-col>
-      <v-col md="12">
-        <v-row justify="center">
           <v-col v-col md="12">
             <line-chart
               xtitle="DPS"
               ytitle="Damage ( 3 min )"
               data="/api/combat/damage"
               :precision="3"
-              :download="{ background: '#fff' }"
-              :refresh="3"
+              :curve="false"
+              :points="false"
+              :stacked="true"
+              :refresh="2"
             ></line-chart>
           </v-col>
-          <v-col v-col md="12">
-            <v-window v-model="window" class="elevation-2" vertical>
-              <v-window-item>
-                <v-card flat>
-                  <v-card-text>
-                    {{ this.clusterData }}
-                  </v-card-text>
-                </v-card>
-              </v-window-item>
-            </v-window>
+          <v-col v-col md="6">
+            <bar-chart
+              xtitle="Highest DPS"
+              data="/api/combat/highestDps"
+              :download="true"
+              :colors="['#dc3912']"
+              :refresh="1"
+            ></bar-chart>
           </v-col>
-          <v-col v-col md="12">
-            <bar-chart data="/api/combat/totalDamage" :download="true" :refresh="3"></bar-chart>
+          <v-col v-col md="6">
+            <bar-chart
+              xtitle="Total Damage"
+              data="/api/combat/totalDamage"
+              :legend="a"
+              :download="true"
+              :stacked="true"
+              :colors="['#dc3912']"
+              :refresh="1"
+            ></bar-chart>
           </v-col>
         </v-row>
       </v-col>
@@ -39,7 +43,10 @@
 
 <style lang="scss">
 .home {
-  height: 100vh;
+  .cluster {
+    padding: 0;
+    background: rgb(0, 0, 0, 0.35);
+  }
 }
 </style>
 
@@ -71,9 +78,6 @@ export default class HomeView extends Vue {
   protected async load(): Promise<void> {
     this.isLoading = true
     try {
-      const responseCluster = await this.$axios.get<ClusterResultModel>(`/api/cluster`)
-      this.clusterData = responseCluster.data
-
       const responseParty = await this.$axios.get<PartyResultModel>(`/api/party`)
       this.partyData = responseParty.data
       

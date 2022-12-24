@@ -14,7 +14,7 @@ namespace AlbionDamageMetter.Albion.Network.Events
         public double NewHealthValue { get; private set; }
 
         public long ObjectId { get; private set; }
-        public GameTimeStamp TimeStamp { get; private set; }
+        public GameTimeStamp? TimeStamp { get; private set; }
 
         public HealthUpdateEvent(Dictionary<byte, object> parameters)
         {

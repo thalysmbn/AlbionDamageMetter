@@ -1,30 +1,48 @@
 ﻿using AlbionDamageMetter.Albion.Models.NetworkModel;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Text.Json.Serialization;
 using System.Timers;
 
 namespace AlbionDamageMetter.Albion.Models.NetworkModel
 {
     public class PlayerGameObject : GameObject
     {
-        private CharacterEquipment _characterEquipment;
+        [JsonIgnore]
+        private CharacterEquipment _characterEquipment { get; set; }
         private Guid _userGuid;
         private Guid? _interactGuid;
         private object _lock = new object();
 
         private Queue<long> _queueDamage;
-        private Dictionary<DateTime, long> _damageList;
+        private ConcurrentDictionary<DateTime, long> _damageList;
+        private ConcurrentDictionary<DateTime, long> _combatDamageList;
 
         private Queue<long> _queueHeal;
-        private Dictionary<DateTime, long> _healList;
+        private ConcurrentDictionary<DateTime, long> _healList;
+        private ConcurrentDictionary<DateTime, long> _combatHealList;
+
+        private LinkedList<long> _dpsMathList;
 
         public string Name { get; set; } = "Unknown";
         public string Guild { get; set; }
         public string Alliance { get; set; }
+        [JsonIgnore]
         public long LastUpdate { get; private set; }
-        public DateTime? CombatStart { get; set; }
         public long Damage { get; set; }
+        public long HighestDamage { get; set; }
+        public long HighestHeal { get; set; }
         public long Heal { get; set; }
-        public long Dps { get; set; }
+
+        [JsonIgnore]
+        public long Dps { get
+            {
+                if (_dpsMathList.Count == 0) return 0;
+                lock (this._lock)
+                    return (long) _dpsMathList.Average();
+            }
+        }
 
         public PlayerGameObject(long objectId)
         {
@@ -32,11 +50,14 @@ namespace AlbionDamageMetter.Albion.Models.NetworkModel
             LastUpdate = DateTime.UtcNow.Ticks;
             _queueDamage = new Queue<long>();
             _queueHeal = new Queue<long>();
-            DamageList = new Dictionary<DateTime, long>();
-            HealList = new Dictionary<DateTime, long>();
+            _dpsMathList = new LinkedList<long>();
+            DamageList = new ConcurrentDictionary<DateTime, long>();
+            HealList = new ConcurrentDictionary<DateTime, long>();
+            CombatDamageList = new ConcurrentDictionary<DateTime, long>();
+            CombatHealList = new ConcurrentDictionary<DateTime, long>();
         }
 
-        public void OnTimedEvent()
+        public void OnTimedEvent(DateTime utcNow)
         {
             lock (this._lock)
             {
@@ -50,12 +71,23 @@ namespace AlbionDamageMetter.Albion.Models.NetworkModel
                 {
                     healing += _queueHeal.Dequeue();
                 }
-                Dps = damage;
+
                 Damage += damage;
                 Heal += healing;
-                var date = DateTime.UtcNow;
-                DamageList.Add(date, damage);
-                HealList.Add(date, healing);
+                CombatDamageList.AddOrUpdate(utcNow, damage, (key, oldValue) => damage);
+                CombatHealList.AddOrUpdate(utcNow, healing, (key, oldValue) => healing);
+
+                LastUpdate = utcNow.Ticks;
+
+                if (_dpsMathList.Count > 5)
+                    _dpsMathList.RemoveFirst();
+                _dpsMathList.AddLast(damage);
+
+                if (damage > HighestDamage)
+                    HighestDamage = damage;
+
+                if (healing > HighestHeal)
+                    HighestHeal = healing;
             }
         }
 
@@ -69,21 +101,51 @@ namespace AlbionDamageMetter.Albion.Models.NetworkModel
             }
         }
 
-        public Dictionary<DateTime, long> DamageList
+        public ConcurrentDictionary<DateTime, long> DamageList
         {
-            get => _damageList;
+            get
+            {
+                lock (this._lock) return _damageList;
+            }
             set
             {
                 _damageList = value;
             }
         }
 
-        public Dictionary<DateTime, long> HealList
+        public ConcurrentDictionary<DateTime, long> HealList
         {
-            get => _healList;
+            get
+            {
+                lock (this._lock) return _healList;
+            }
             set
             {
                 _healList = value;
+            }
+        }
+
+        public ConcurrentDictionary<DateTime, long> CombatDamageList
+        {
+            get
+            {
+                lock (this._lock) return _combatDamageList;
+            }
+            set
+            {
+                _combatDamageList = value;
+            }
+        }
+
+        public ConcurrentDictionary<DateTime, long> CombatHealList
+        {
+            get {
+                lock (this._lock)
+                    return _combatHealList;
+            }
+            set
+            {
+                _combatHealList = value;
             }
         }
 
@@ -110,6 +172,7 @@ namespace AlbionDamageMetter.Albion.Models.NetworkModel
         {
             lock (this._lock)
             {
+                _damageList.AddOrUpdate(date, damage, (key, oldValue) => damage);
                 _queueDamage.Enqueue(damage);
             }
         }
@@ -118,6 +181,7 @@ namespace AlbionDamageMetter.Albion.Models.NetworkModel
         {
             lock (this._lock)
             {
+                _healList.AddOrUpdate(date, heal, (key, oldValue) => heal);
                 _queueHeal.Enqueue(heal);
             }
         }
@@ -128,8 +192,11 @@ namespace AlbionDamageMetter.Albion.Models.NetworkModel
             {
                 Heal = 0;
                 Damage = 0;
-                HealList.Clear();
+                HighestDamage = 0;
+                CombatHealList.Clear();
+                CombatDamageList.Clear();
                 DamageList.Clear();
+                HealList.Clear();
                 _queueHeal.Clear();
                 _queueDamage.Clear();
             }

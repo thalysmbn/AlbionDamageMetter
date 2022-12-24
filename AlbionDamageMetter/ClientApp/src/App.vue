@@ -12,14 +12,6 @@
       dark
     >
       <v-list>
-        <template v-if="isAuthenticated">
-          <v-list-item class="px-2">
-            <v-list-item-avatar>
-              <v-img :src="discordAvatarUrl"></v-img>
-            </v-list-item-avatar>
-          </v-list-item>
-          <v-divider></v-divider>
-        </template>
         <template v-for="(item, i) in items">
           <template v-if="item.target">
             <v-list-item value="true" :key="i" :href="item.link" :target="item.target">
@@ -61,6 +53,14 @@
         <v-icon v-html="miniVariant ? 'mdi-chevron-right' : 'mdi-chevron-left'"></v-icon>
       </v-btn>
       <v-toolbar-title v-text="title"></v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-tab>
+        <v-badge :color="GetClusterColor(clusterData.clusterMode)" :content="clusterData.tier">
+          {{ clusterData.clusterHistoryString1 }}
+          {{ clusterData.clusterHistoryString2 }}
+          {{ clusterData.clusterHistoryString3 }}
+        </v-badge>
+      </v-tab>
     </v-app-bar>
     <v-main class="main">
       <router-view />
@@ -69,15 +69,19 @@
 </template>
 
 <script lang="ts">
+import { MapType } from '../src/enum/MapType'
+import { ClusterMode } from '../src/enum/ClusterMode'
 import './assets/custom.scss'
 import { Action, Getter } from 'vuex-class'
-import { Component, Vue } from 'vue-property-decorator'
+import { Component, Vue, Watch } from 'vue-property-decorator'
+import { ClusterResultModel } from '@/models/ClusterResultModel'
 const namespace = 'account'
 
-@Component({
-  components: {}
-})
+@Component({})
 export default class App extends Vue {
+  protected clusterData: ClusterResultModel = new ClusterResultModel
+
+  protected isLoading = true
   private clipped = true
   private drawer = true
   private miniVariant = true
@@ -85,19 +89,7 @@ export default class App extends Vue {
   private title = 'Albion Arms'
   private items = [
     { title: 'Home', icon: 'mdi-home', link: '/' },
-    { title: 'Battles', icon: 'mdi-sword-cross', link: '/battles' },
-    {
-      title: 'Discord',
-      icon: 'mdi-discord',
-      link: 'https://discord.gg/d3YpWbBX7u',
-      target: '_blank'
-    },
-    {
-      title: 'PayPal',
-      icon: 'mdi-currency-usd',
-      link: 'https://www.paypal.com/donate?hosted_button_id=UBH8WVHEBS2SG',
-      target: '_blank'
-    }
+    { title: 'Clusters', icon: 'mdi-sword-cross', link: '/clusters' }
   ]
 
   @Getter('isAuthenticated', { namespace })
@@ -119,21 +111,44 @@ export default class App extends Vue {
   private setDiscordAvatarUrl!: (discordId: string) => void
 
   public async created(): Promise<void> {
-    this.load()
+    setInterval(() => {
+      this.load()
+    }, 1000)
   }
 
-  protected load(): void {
-    fetch(`/authentication/data`)
-      .then((res) => res.clone().json())
-      .then((res) => {
-        this.setAuthenticated(res.isAuthenticated)
-        this.setDiscordId(res.discordId)
-        this.setDiscordAvatarUrl(res.discordAvatarUrl)
-        console.log(this.discordId)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
+  public GetMapType(number: number): string {
+    return MapType[number] as string
+  }
+
+  public GetClusterMode(number: number): string {
+    return ClusterMode[number] as string
+  }
+
+  public GetClusterColor(mode: ClusterMode): string {
+    switch (mode) {
+      case ClusterMode.Yellow:
+        return 'yellow'
+      case ClusterMode.Red:
+        return 'red'
+      case ClusterMode.Black:
+      case ClusterMode.AvalonTunnel:
+        return 'black'
+      case ClusterMode.SafeArea:
+      case ClusterMode.Island:
+      default:
+        return 'blue'
+    }
+  }
+
+  protected async load(): Promise<void> {
+    this.isLoading = true
+    try {
+      const responseCluster = await this.$axios.get<ClusterResultModel>(`/api/cluster`)
+      this.clusterData = responseCluster.data
+      this.isLoading = false
+    } catch (e) {
+      console.log(e)
+    }
   }
 }
 </script>

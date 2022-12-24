@@ -21,13 +21,12 @@ namespace AlbionDamageMetter.Controllers
         {
             var list = new List<DamageResultModel>();
             var members = _albionEntityData.GetAllEntities(true);
-            var selectOrderedMembers = members.Select(i => new { i.Value.Name, i.Value.Damage });
             foreach (var member in members)
             {
                 list.Add(new DamageResultModel
                 {
                     Name = member.Value.Name,
-                    Data = member.Value.DamageList.Where(x => x.Key >= DateTime.UtcNow.AddMinutes(-3)).ToDictionary(x => x.Key, x => x.Value)
+                    Data = member.Value.CombatDamageList.Where(x => x.Key >= DateTime.UtcNow.AddMinutes(-3)).ToDictionary(x => x.Key, x => x.Value)
                 });
             }
             return list.ToArray();
@@ -38,13 +37,29 @@ namespace AlbionDamageMetter.Controllers
         {
             var list = new List<Object[]>();
             var members = _albionEntityData.GetAllEntities(true);
+            var totalDamage = members.Sum(x => x.Value.Damage);
             var selectOrderedMembers = members.Select(i => new { i.Value.Name, i.Value.Damage }).OrderByDescending(x => x.Damage);
-            foreach (var member in members)
+            foreach (var member in selectOrderedMembers)
             {
-                Object[] arrayUserData = { member.Value.Name, member.Value.Damage };
-                list.Add(arrayUserData);
+                var damagePercentage = member.Damage == 0 ? 0 : (int)(0.5f + ((100f * member.Damage) / totalDamage));
+                list.Add(new object[] { $"{member.Name} ( {damagePercentage}% )", member.Damage });
 
             }
+            return list.ToArray();
+        }
+
+        [Route("highestDps")]
+        public object[][] HighestDps()
+        {
+            var list = new List<Object[]>();
+            var members = _albionEntityData.GetAllEntities(true);
+            var selectOrderedMembers = members.Select(i => new { i.Value.Name, i.Value.Dps }).OrderByDescending(x => x.Dps);
+            foreach (var member in members)
+            {
+                list.Add(new object[] { member.Value.Name, member.Value.Dps });
+
+            }
+
             return list.ToArray();
         }
 
@@ -56,8 +71,7 @@ namespace AlbionDamageMetter.Controllers
             var selectOrderedMembers = members.Select(i => new { i.Value.Name, i.Value.Damage }).OrderByDescending(x => x.Damage);
             foreach (var member in members)
             {
-                Object[] arrayUserData = { member.Value.Name, member.Value.Damage };
-                list.Add(arrayUserData);
+                list.Add(new object[] { member.Value.Name, member.Value.Damage });
             }
             return list.ToArray();
         }

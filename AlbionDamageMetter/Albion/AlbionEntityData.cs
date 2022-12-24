@@ -1,4 +1,5 @@
 ﻿using AlbionDamageMetter.Albion.Enums;
+using AlbionDamageMetter.Albion.Models;
 using AlbionDamageMetter.Albion.Models.NetworkModel;
 using AlbionDamageMetter.Albion.Network.Events;
 using AlbionDamageMetter.Extensions;
@@ -13,7 +14,7 @@ namespace AlbionDamageMetter.Albion
         public ConcurrentDictionary<long, double> LastPlayersHealth = new();
         private readonly ConcurrentDictionary<Guid, PlayerGameObject> _knownEntities = new();
         private readonly ConcurrentDictionary<Guid, string> _knownPartyEntities = new();
-        private readonly LinkedList<HealthUpdateEvent> _combatHistory = new();
+        private readonly LinkedList<HealthUpdateModel> _combatHistory = new();
 
         private System.Timers.Timer _timer;
 
@@ -24,15 +25,16 @@ namespace AlbionDamageMetter.Albion
                 Interval = 1000,
                 Enabled = true
             };
-            _timer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
+            _timer.Elapsed += (source, e) => OnTimedEvent(e);
             _timer.Start();
         }
 
-        private void OnTimedEvent(object source, ElapsedEventArgs e)
+        private void OnTimedEvent(ElapsedEventArgs e)
         {
+            var utcNow = DateTime.UtcNow;
             foreach (var entitie in _knownEntities.Values)
             {
-                entitie.OnTimedEvent();
+                Task.Run(() => entitie.OnTimedEvent(utcNow));
             }
         }
 
@@ -54,9 +56,8 @@ namespace AlbionDamageMetter.Albion
                     ObjectSubType = objectSubType,
                     CharacterEquipment = characterEquipment ?? oldEntity.CharacterEquipment,
                     Damage = oldEntity.Damage,
-                    DamageList = oldEntity.DamageList,
-                    HealList = oldEntity.HealList,
-                    Dps = oldEntity.Dps
+                    CombatDamageList = oldEntity.CombatDamageList,
+                    CombatHealList = oldEntity.CombatHealList
                 };
             }
             else
@@ -181,7 +182,17 @@ namespace AlbionDamageMetter.Albion
             {
                 return;
             }
-            _combatHistory.AddLast(healthUpdateEvent);
+            _combatHistory.AddLast(new HealthUpdateModel
+            {
+                CauserId = healthUpdateEvent.CauserId,
+                CausingSpellType = healthUpdateEvent.CausingSpellType,
+                EffectOrigin = healthUpdateEvent.EffectOrigin,
+                EffectType = healthUpdateEvent.EffectType,
+                HealthChange = healthUpdateEvent.HealthChange,
+                NewHealthValue = healthUpdateEvent.NewHealthValue,
+                ObjectId = healthUpdateEvent.ObjectId,
+                TimeStamp = healthUpdateEvent.TimeStamp
+            });
         }
 
         public void AddDamage(long objectId, long causerId, double healthChange, double newHealthValue)
@@ -204,7 +215,7 @@ namespace AlbionDamageMetter.Albion
                 {
                     return;
                 }
-                gameObject.Value.Value.AddDamage(DateTime.Now, damageChangeValue);
+                gameObject.Value.Value.AddDamage(DateTime.UtcNow, damageChangeValue);
             }
 
             if (GetHealthChangeType(healthChange) == HealthChangeType.Heal)
@@ -220,10 +231,9 @@ namespace AlbionDamageMetter.Albion
                     return;
                 }
 
-                gameObject.Value.Value.AddHealing(DateTime.Now, (int)Math.Round(healChangeValue, MidpointRounding.AwayFromZero));
+                gameObject.Value.Value.AddHealing(DateTime.UtcNow, (int)Math.Round(healChangeValue, MidpointRounding.AwayFromZero));
             }
 
-            gameObjectValue.CombatStart ??= DateTime.UtcNow;
         }
 
         public bool IsMaxHealthReached(long objectId, double newHealthValue)
@@ -258,9 +268,9 @@ namespace AlbionDamageMetter.Albion
 
         private static HealthChangeType GetHealthChangeType(double healthChange) => healthChange <= 0 ? HealthChangeType.Damage : HealthChangeType.Heal;
 
-        public HealthUpdateEvent[] GetCombatHistory()
+        public LinkedList<HealthUpdateModel> GetCombatHistory()
         {
-            return _combatHistory.ToArray();
+            return _combatHistory;
         }
     }
 }
